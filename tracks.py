@@ -5,12 +5,7 @@ from utils.trackingutils import Sort
 # https://github.com/abewley/sort/blob/master/sort.py
 
 
-def get_tracks_by_boxes(predict_boxes_all_frames):
-    boxes_all_frames = []
-    for boxes_in_frames in predict_boxes_all_frames:
-        dets = [d for d in boxes_in_frames[0]] if len(boxes_in_frames) else []
-        print('d: ', dets)
-        boxes_all_frames.append(dets)
+def get_tracks_by_boxes(boxes_all_frames):
     tracks = []
     total_frames = len(boxes_all_frames)
     tracker = Sort(cfg={'max_age': total_frames})
@@ -39,7 +34,7 @@ def get_tracks(h5boxes_path):
 
     for frame_idx in range(1, total_frames):
         dets = boxes_all_frames[frame_idx]
-        print(frame_idx, dets)
+        #print(frame_idx, dets)
         trackers = tracker.update(np.array(dets))
         for d in trackers:
             print('%d,%d,%.2f,%.2f,%.2f,%.2f,1,-1,-1,-1' % (frame_idx,

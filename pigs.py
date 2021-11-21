@@ -25,6 +25,7 @@ def detect(weight_path, source_img_path, save_img_path='out.jpg'):
 
     from utils.h5export import savePredict
     from tracks import get_tracks_by_boxes
+    from utils.annotate_video import annotate_video_by_arrays
 
     # размер обрабатываемой картинки
     size_img = 1024
@@ -78,6 +79,7 @@ def detect(weight_path, source_img_path, save_img_path='out.jpg'):
     img = torch.zeros((1, 3, imgsz, imgsz), device=device)  # init img
     _ = model(img.half() if half else img) if device.type != 'cpu' else None  # run once
     predicted_boxes_all_frames = []
+    predicted_boxes = []
     for path, img, im0s, vid_cap in dataset:
         img = torch.from_numpy(img).to(device)
         img = img.half() if half else img.float()  # uint8 to fp16/32
@@ -96,7 +98,6 @@ def detect(weight_path, source_img_path, save_img_path='out.jpg'):
         t2 = time_synchronized()
 
         # Process detections
-        predicted_boxes = []
         for i, det in enumerate(pred):  # detections per image
             if webcam:  # batch_size >= 1
                 p, s, im0 = Path(path[i]), '%g: ' % i, im0s[i].copy()
@@ -156,15 +157,18 @@ def detect(weight_path, source_img_path, save_img_path='out.jpg'):
                         vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*fourcc), fps, (w, h))
                     vid_writer.write(im0)
 
-        predicted_boxes_all_frames.append(predicted_boxes)
+        predicted_boxes_all_frames = predicted_boxes
 
     masks = []
+    tracks = get_tracks_by_boxes(predicted_boxes_all_frames)
     if save_h5:
-        tracks = get_tracks_by_boxes(predicted_boxes_all_frames)
         savePredict(str(save_dir) + '.h5', predicted_boxes_all_frames, masks, tracks)
 
     if save_txt or save_img:
         print('Results saved to %s' % save_dir)
+
+    print('Generate output video')
+    annotate_video_by_arrays(source_img_path, str(save_dir), predicted_boxes_all_frames, masks, tracks)
 
     print('Done. (%.3fs)' % (time.time() - t0))
 

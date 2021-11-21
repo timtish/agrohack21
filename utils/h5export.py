@@ -65,6 +65,6 @@ def predict_activity(track):
     avg_y = float(sum([t[2] for t in track]))/len(track)
     max_dev_y = max([max([t[2] for t in track])-avg_y, avg_y-min([t[2] for t in track])])
     pose = 1 if max_dev_x > 300 or max_dev_y > 300 else 0
-    # print(first_frame, last_frame, track)
+    print(first_frame, last_frame, max_dev_x, max_dev_y, 'бегает' if pose == 1 else 'стоит/лежит')
     return [[first_frame, last_frame, pose]]
 
