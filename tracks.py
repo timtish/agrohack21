@@ -1,8 +1,25 @@
 import h5py as h5
 import numpy as np
 
-from trackingutils import Sort
+from utils.trackingutils import Sort
 # https://github.com/abewley/sort/blob/master/sort.py
+
+
+def get_tracks_by_boxes(predict_boxes_all_frames):
+    boxes_all_frames = []
+    for boxes_in_frames in predict_boxes_all_frames:
+        dets = [d for d in boxes_in_frames[0]] if len(boxes_in_frames) else []
+        print('d: ', dets)
+        boxes_all_frames.append(dets)
+    tracks = []
+    total_frames = len(boxes_all_frames)
+    tracker = Sort(cfg={'max_age': total_frames})
+    for frame_idx in range(1, total_frames):
+        dets = boxes_all_frames[frame_idx]
+        trackers = tracker.update(np.array(dets))
+        for d in trackers:
+            tracks.append([frame_idx, int(d[4]), int((d[0]+d[2])/2), int((d[1]+d[3])/2)])
+    return tracks
 
 
 def get_tracks(h5boxes_path):
@@ -30,4 +47,5 @@ def get_tracks(h5boxes_path):
             # add_patch(patches.Rectangle((d[0], d[1]), d[2] - d[0], d[3] - d[1]
 
 
-get_tracks('/data/dev/ML/hackatons/ferma/train6/out_files/out_Movie_6.mkv.h5')
+if __name__ == '__main__':
+    get_tracks('/data/dev/ML/hackatons/ferma/train6/out_files/out_Movie_6.mkv.h5')

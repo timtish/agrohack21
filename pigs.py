@@ -24,7 +24,9 @@ def detect(weight_path, source_img_path, save_img_path='out.jpg'):
     from utils.torch_utils import select_device, load_classifier, time_synchronized
 
     from utils.h5export import savePredict
+    from tracks import get_tracks_by_boxes
 
+    # размер обрабатываемой картинки
     size_img = 1024
 
     # Этот словарь - это все параметры скрипта detect.py
@@ -156,8 +158,10 @@ def detect(weight_path, source_img_path, save_img_path='out.jpg'):
 
         predicted_boxes_all_frames.append(predicted_boxes)
 
+    masks = []
     if save_h5:
-        savePredict(str(save_dir) + '.h5', predicted_boxes_all_frames)
+        tracks = get_tracks_by_boxes(predicted_boxes_all_frames)
+        savePredict(str(save_dir) + '.h5', predicted_boxes_all_frames, masks, tracks)
 
     if save_txt or save_img:
         print('Results saved to %s' % save_dir)
