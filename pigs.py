@@ -57,7 +57,7 @@ def detect(weight_path, source_img_path, save_img_path='out.jpg'):
         cudnn.benchmark = True  # set True to speed up constant image size inference
         dataset = LoadStreams(source, img_size=imgsz)
     else:
-        save_img = True
+        save_img = False
         dataset = LoadImages(source, img_size=imgsz)
 
     # Get names and colors
@@ -109,7 +109,7 @@ def detect(weight_path, source_img_path, save_img_path='out.jpg'):
             if len(det):
                 # Rescale boxes from img_size to im0 size
                 det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()
-                predicted_boxes.append(det.cpu().numpy().astype('int'))
+                predicted_boxes.append([b.tolist() for b in det[:, :4].cpu().numpy().astype('int')])
 
                 # Print results
                 for c in det[:, -1].unique():
