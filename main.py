@@ -23,16 +23,17 @@ def process(source_PATH, out_PATH, model_PATH):
     @param: model_PATH Путь к модели
     """
     # Создадим папки для файлов, если их нет
-    if not (source_PATH in os.listdir('.')):
+    if not (source_PATH in os.listdir('.')) and not os.path.exists(source_PATH):
         os.mkdir(source_PATH)
-    if not (out_PATH in os.listdir('.')):
+    if not (out_PATH in os.listdir('.')) and not os.path.exists(out_PATH):
         os.mkdir(out_PATH)
 
     # В папке должен быть файл модели
     assert model_PATH in os.listdir('.'), 'В папке программы должен быть файл модели'
 
     # Создадим список файлов для обработки
-    source_files = sorted(os.listdir(source_PATH))
+    dir_source = os.path.isdir(source_PATH)
+    source_files = sorted(os.listdir(source_PATH)) if dir_source else [source_PATH]
     out_files = sorted(os.listdir(out_PATH))
     # Раздельные списки для картинок и видео
     img_files = []
@@ -57,8 +58,8 @@ def process(source_PATH, out_PATH, model_PATH):
     # Обрабатываем видео
     for vid in vid_files:
         # полные пути к файлам
-        vid_FILE = source_PATH + '/' + vid
-        out_FILE = out_PATH + '/' + 'out_' + vid
+        vid_FILE = source_PATH + '/' + vid if dir_source else vid
+        out_FILE = out_PATH + '/' + 'out_' + (vid if dir_source else os.path.basename(vid))
         # Вызов функции предикта
         _ = pigs.detect(model_PATH, vid_FILE, out_FILE)
 
