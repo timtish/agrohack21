@@ -15,6 +15,7 @@ def detect(weight_path, source_img_path, save_img_path='out.jpg'):
     import torch
     import torch.backends.cudnn as cudnn
     from numpy import random
+    from PIL import Image
 
     from models.experimental import attempt_load
     from utils.datasets import LoadStreams, LoadImages
@@ -26,6 +27,7 @@ def detect(weight_path, source_img_path, save_img_path='out.jpg'):
     from utils.h5export import savePredict
     from tracks import get_tracks_by_boxes
     from utils.annotate_video import annotate_video_by_arrays
+    from segmentation import predict_img
 
     # размер обрабатываемой картинки
     size_img = 1024
@@ -120,16 +122,17 @@ def detect(weight_path, source_img_path, save_img_path='out.jpg'):
                     s += '%g %ss, ' % (n, names[int(c)])  # add to string
 
                 # Write results
-                for *xyxy, conf, cls in reversed(det):
-                    if save_txt:  # Write to file
-                        xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
-                        line = (cls, *xywh, conf) if opt.save_conf else (cls, *xywh)  # label format
-                        with open(txt_path + '.txt', 'a') as f:
-                            f.write(('%g ' * len(line)).rstrip() % line + '\n')
+                if save_txt or save_img or view_img:
+                    for *xyxy, conf, cls in reversed(det):
+                        if save_txt:  # Write to file
+                            xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
+                            line = (cls, *xywh, conf) if opt.save_conf else (cls, *xywh)  # label format
+                            with open(txt_path + '.txt', 'a') as f:
+                                f.write(('%g ' * len(line)).rstrip() % line + '\n')
 
-                    if save_img or view_img:  # Add bbox to image
-                        label = '%s %.2f' % (names[int(cls)], conf)
-                        plot_one_box(xyxy, im0, label=label, color=colors[int(cls)], line_thickness=3)
+                        if save_img or view_img:  # Add bbox to image
+                            label = '%s %.2f' % (names[int(cls)], conf)
+                            plot_one_box(xyxy, im0, label=label, color=colors[int(cls)], line_thickness=3)
 
             # Print time (inference + NMS)
             print('%sDone. (%.3fs)' % (s, t2 - t1))
@@ -158,6 +161,9 @@ def detect(weight_path, source_img_path, save_img_path='out.jpg'):
                     vid_writer.write(im0)
 
         predicted_boxes_all_frames = predicted_boxes
+
+        pil_im = Image.fromarray(im0)  # 1700x1700 RGB
+        # todo: mask = predict_img(pil_im)  # (2, 1700, 1700)
 
     masks = []
     tracks = get_tracks_by_boxes(predicted_boxes_all_frames)

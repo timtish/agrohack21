@@ -118,10 +118,10 @@ def annotate_video_by_arrays(src_file_path, dst_video_path, predicted_boxes_all_
             track = [[x[0], x[2], x[3]] for x in tracks
                      if x[1] == pig_idx and frame_out_idx - fps * TRACK_TIME_SEC < x[0] <= frame_out_idx]
             if len(track) > 0:
-                #for t in track:
-                #    cv2.circle(frame, (t[1], t[2]), 3, (0, 0, 1))
+                t = track[-1]
+                cv2.circle(frame, (t[1], t[2]), 9, (0, 0, 0))
                 pts = np.array(track, np.int32)
-                pts.sort(0)
+                #pts.sort(0)
                 pts = pts[:, [1, 2]].reshape((-1, 1, 2))
                 cv2.polylines(frame, [pts], False, (40, 160, 40), 3)
 
